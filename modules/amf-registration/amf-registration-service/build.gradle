@@ -1,0 +1,16 @@
+dependencies {
+	compile group: "com.liferay", name: "com.liferay.petra.lang"
+	compile group: "com.liferay", name: "com.liferay.petra.string"
+	compile group: "com.liferay", name: "com.liferay.portal.aop.api"
+	compile group: "com.liferay.portal", name: "com.liferay.portal.kernel"
+	compile group: "org.osgi", name: "org.osgi.annotation.versioning"
+	compile group: "org.osgi", name: "org.osgi.core"
+	compile group: "org.osgi", name: "org.osgi.service.component.annotations"
+	compile project(":modules:amf-registration:amf-registration-api")
+}
+
+buildService {
+	apiDir = "../amf-registration-api/src/main/java"
+}
+
+group = "com.liferay.docs.amf.registration"

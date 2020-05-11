@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<model-hints>
+	<model name="com.liferay.amf.event.monitor.s.model.AMFEvent">
+		<field name="uuid" type="String" />
+		<field name="auditEventId" type="long" />
+		<field name="userId" type="long" />
+		<field name="username" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="eventType" type="String" />
+		<field name="clientIp" type="String" />
+	</model>
+</model-hints>

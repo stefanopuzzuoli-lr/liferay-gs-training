@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE routes PUBLIC "-//Liferay//DTD Friendly URL Routes 7.2.0//EN" "http://www.liferay.com/dtd/liferay-friendly-url-routes_7_2_0.dtd">
+
+<routes>
+    <route>
+        <pattern>/signup</pattern>
+        <implicit-parameter name="mvcPath">/view.jsp</implicit-parameter>
+        <implicit-parameter name="p_p_lifecycle">0</implicit-parameter>
+        <implicit-parameter name="p_p_state">normal</implicit-parameter>
+    </route>
+    <route>
+        <pattern>/signup/success</pattern>
+        <implicit-parameter name="mvcPath">/registrationSuccess.jsp</implicit-parameter>
+        <implicit-parameter name="p_p_lifecycle">1</implicit-parameter>
+        <implicit-parameter name="p_p_state">normal</implicit-parameter>
+    </route>
+
+</routes>

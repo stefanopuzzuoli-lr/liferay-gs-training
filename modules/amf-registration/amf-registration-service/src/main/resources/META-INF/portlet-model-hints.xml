@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<model-hints>
+	<model name="com.liferay.docs.amf.registration.model.AMFUser">
+		<field name="mvccVersion" type="long" />
+		<field name="uuid" type="String" />
+		<field name="userId" type="long" />
+		<field name="male" type="Boolean" />
+		<field name="dob" type="Date" />
+		<field name="homePhone" type="String" />
+		<field name="mobilePhone" type="String" />
+		<field name="address" type="String" />
+		<field name="address2" type="String" />
+		<field name="city" type="String" />
+		<field name="state" type="String" />
+		<field name="zip" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+	</model>
+</model-hints>

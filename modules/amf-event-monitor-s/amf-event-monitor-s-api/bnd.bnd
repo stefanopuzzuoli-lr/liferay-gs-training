@@ -1,0 +1,10 @@
+Bundle-Name: amf-event-monitor-s-api
+Bundle-SymbolicName: com.liferay.amf.event.monitor.s.api
+Bundle-Version: 1.0.0
+Export-Package: \
+	com.liferay.amf.event.monitor.s.exception,\
+	com.liferay.amf.event.monitor.s.model,\
+	com.liferay.amf.event.monitor.s.service,\
+	com.liferay.amf.event.monitor.s.service.persistence
+-check: EXPORTS
+-includeresource: META-INF/service.xml=../amf-event-monitor-s-service/service.xml

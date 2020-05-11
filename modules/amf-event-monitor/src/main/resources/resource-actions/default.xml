@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+ <resource-action-mapping>
+     <portlet-resource>
+         <portlet-name>com_liferay_training_amf_event_monitor_AMFEventMonitorPortlet</portlet-name>
+         <permissions>
+            <supports>               
+                <action-key>VIEW</action-key>
+                <action-key>VIEW_ALL</action-key>
+            </supports>
+            <site-member-defaults>
+            	<action-key>VIEW</action-key>
+            </site-member-defaults>
+            <guest-defaults>
+                <action-key>VIEW</action-key>
+            </guest-defaults>
+            <guest-unsupported>               
+                <action-key>VIEW_ALL</action-key>
+            </guest-unsupported>
+        </permissions>
+    </portlet-resource>
+    
+</resource-action-mapping>
