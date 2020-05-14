@@ -4,6 +4,7 @@ import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalFolder;
 import com.liferay.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.journal.service.JournalFolderLocalServiceUtil;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
@@ -34,7 +35,7 @@ import org.osgi.service.component.annotations.Component;
  * @author stefa
  */
 @Component(immediate = true, property = { "com.liferay.portlet.display-category=category.news",
-		"com.liferay.portlet.header-portlet-css=/css/main.css", "com.liferay.portlet.instanceable=true",
+		"com.liferay.portlet.header-portlet-css=/css/main.css", "com.liferay.portlet.instanceable=false",
 		"javax.portlet.display-name=AmfNewsletter", "javax.portlet.init-param.template-path=/",
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + AmfNewsletterPortletKeys.AMFNEWSLETTER,
@@ -45,7 +46,6 @@ public class AmfNewsletterPortlet extends MVCPortlet {
 	@Override
 	public void render(RenderRequest renderRequest, RenderResponse renderResponse)
 			throws IOException, PortletException {
-
 		ThemeDisplay themeDisplay = (ThemeDisplay) renderRequest.getAttribute(WebKeys.THEME_DISPLAY);
 
 		long groupId = themeDisplay.getScopeGroupId();
@@ -53,7 +53,7 @@ public class AmfNewsletterPortlet extends MVCPortlet {
 		Map<JournalFolder, List<JournalArticle>> foldersToArticles = new HashMap<>();
 
 		// get list of all years in which issues are released
-		Set<Integer> yearsSet = new HashSet<>();
+		Map<Integer, List<JournalFolder>> yearsToFolders = new HashMap<>();
 
 		// map each folder to the articles contained in it and get years of releases
 		for (JournalFolder journalFolder : journalFolders) {
@@ -61,11 +61,20 @@ public class AmfNewsletterPortlet extends MVCPortlet {
 					JournalArticleLocalServiceUtil.getArticles(groupId, journalFolder.getFolderId()));
 			Date createdate = journalFolder.getCreateDate();
 			LocalDate localCreateDate = createdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-			yearsSet.add(localCreateDate.getYear());
+			int year = localCreateDate.getYear();
+			if (yearsToFolders.containsKey(year))
+			{
+				yearsToFolders.get(year).add(journalFolder);
+			}
+			else
+			{
+				yearsToFolders.put(year, new ArrayList<>());
+				yearsToFolders.get(year).add(journalFolder);
+			}
 		}
+				
+		List<Integer> years = new ArrayList<Integer>(yearsToFolders.keySet());
 		
-		List<Integer> years = new ArrayList<Integer>(yearsSet);
-
 		// sort the list of years in descending order
 		Collections.sort(years, Collections.reverseOrder());
 
@@ -80,6 +89,8 @@ public class AmfNewsletterPortlet extends MVCPortlet {
 		// set commaSeparatedYears attribute for tabs creation
 		renderRequest.setAttribute("commaSeparatedYears", commaSeparatedYears.toString());
 
+		renderRequest.setAttribute("yearsToFolders", yearsToFolders);
+		
 		// set all custom fields attributes of folders and articles (such as Parent
 		// Issue, Order, etc.)
 		for (JournalFolder journalFolder : foldersToArticles.keySet()) {
@@ -96,13 +107,62 @@ public class AmfNewsletterPortlet extends MVCPortlet {
 			}
 			journalFolder.getExpandoBridge().setAttribute("Byline", String.join(", ", authors).substring(2));
 		}
-
+		
 		if (_log.isDebugEnabled()) {
 			_log.debug("All custom field expando attributes of folders and articles set.");
 		}
+		
+		// create mapping of folder to latest version of only approved articles
+		Map<JournalFolder, Set<JournalArticle>> foldersToLatestApprovedArticles = new HashMap<>();
+		for (JournalFolder journalFolder : foldersToArticles.keySet()) {
+			foldersToLatestApprovedArticles.put(journalFolder, new HashSet<>());
+			List<JournalArticle> articles = foldersToArticles.get(journalFolder);
+			for (JournalArticle article : articles) {
+				try {
+					foldersToLatestApprovedArticles.get(journalFolder).add(JournalArticleLocalServiceUtil.getLatestArticle(groupId, article.getArticleId(), 0));
+				} catch (PortalException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		renderRequest.setAttribute("foldersToLatestApprovedArticles", foldersToLatestApprovedArticles);
 
-		// have all months in list and get index of current month
+		Map<Integer, Map<Integer, List<JournalFolder>>> yearToMonthToFolders = new HashMap<>();
+		for (Integer year : years)
+		{
+			yearToMonthToFolders.put(year, new HashMap<>());
+			yearToMonthToFolders.get(year).put(0, new ArrayList<>());
+			yearToMonthToFolders.get(year).put(1, new ArrayList<>());
+			yearToMonthToFolders.get(year).put(2, new ArrayList<>());
+			yearToMonthToFolders.get(year).put(3, new ArrayList<>());
+			yearToMonthToFolders.get(year).put(4, new ArrayList<>());
+			yearToMonthToFolders.get(year).put(5, new ArrayList<>());
+			yearToMonthToFolders.get(year).put(6, new ArrayList<>());
+			yearToMonthToFolders.get(year).put(7, new ArrayList<>());
+			yearToMonthToFolders.get(year).put(8, new ArrayList<>());
+			yearToMonthToFolders.get(year).put(9, new ArrayList<>());
+			yearToMonthToFolders.get(year).put(10, new ArrayList<>());
+			yearToMonthToFolders.get(year).put(11, new ArrayList<>());
 
+			if (yearsToFolders.get(year) != null)
+			{
+				List<JournalFolder> journalFoldersOfYear = yearsToFolders.get(year);
+				for (JournalFolder journalFolderOfYear : journalFoldersOfYear)
+				{
+					int monthNum = journalFolderOfYear.getCreateDate().getMonth();
+					yearToMonthToFolders.get(year).get(monthNum).add(journalFolderOfYear);
+				}
+			}
+		}
+		
+		if (_log.isDebugEnabled()) {
+			_log.debug("Mapping of Years to Months to JournalFolders complete.");
+		}
+		
+		renderRequest.setAttribute("yearToMonthToFolders", yearToMonthToFolders);
+		
+		renderRequest.setAttribute("foldersToArticles", foldersToArticles);
+		
 		super.render(renderRequest, renderResponse);
 	}
 
