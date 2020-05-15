@@ -1,5 +1,26 @@
 <%@ include file="/init.jsp"%>
 
+<liferay-portlet:renderURL varImpl="searchURL">
+    <portlet:param name="mvcPath" 
+    value="/view_search.jsp" />
+</liferay-portlet:renderURL>
+
+<aui:form action="${searchURL}"  method="get" name="fm">
+	<liferay-portlet:renderURLParams varImpl="searchURL" />
+
+    <div class="row">
+        <div class="col-md-4">
+            <aui:input inlineLabel="left" label="" name="keywords" placeholder="" size="30" />
+        </div>
+
+        <div class="col-md-4">
+            <aui:button type="submit" value="search" />
+        </div>
+    </div>
+
+</aui:form>
+
+
 <liferay-ui:tabs names="${commaSeparatedYears}" refresh="<%=false%>" >
 
 	<c:forEach items = "${years}" var = "year"> 
@@ -37,8 +58,7 @@
 						<!-- Convert date to needed format -->
 						<%
 							Date date = (Date) pageContext.getAttribute("createDate");
-							SimpleDateFormat formatter = new SimpleDateFormat("MMMM dd, yyyy");  
-						    String formattedCreateDate= formatter.format(date);
+						    String formattedCreateDate= NewsletterHelper.formatCreateDate(date);
 						    pageContext.setAttribute("formattedCreateDate", formattedCreateDate);
 						%>
 						
@@ -47,7 +67,6 @@
 				   	   		<portlet:param name="mvcPath" value="/view_issue.jsp" />
 				   	   		<portlet:param name="folderId" value="${journalFolder.getFolderId()}" />
 				   	   		<portlet:param name="issueNumber" value="${journalFolder.getExpandoBridge().getAttribute('Issue number')}" />
-				   	   		<portlet:param name="createDate" value="${formattedCreateDate}" />
 				   	   						
 						</portlet:renderURL>
 

@@ -1,13 +1,12 @@
 <%@ include file="/init.jsp"%>
 
-<link href="/css/main.scss" rel="stylesheet" type="text/css"  />
-
 <%  
 	long folderId = Long.parseLong(request.getParameter("folderId")); 
 	JournalFolder journalFolder = JournalFolderLocalServiceUtil.getFolder(folderId);
-	pageContext.setAttribute("journalFolder", journalFolder);
-	String formattedCreateDate = request.getParameter("createDate");
-	pageContext.setAttribute("formattedCreateDate", formattedCreateDate);
+	pageContext.setAttribute("journalFolder", journalFolder);	
+    String formattedCreateDate= NewsletterHelper.formatCreateDate(journalFolder.getCreateDate());
+    pageContext.setAttribute("formattedCreateDate", formattedCreateDate);
+	
 %>
 
 <c:set value="${journalFolder.getExpandoBridge().getAttribute('Issue number')}"  var="issueNumber"/>

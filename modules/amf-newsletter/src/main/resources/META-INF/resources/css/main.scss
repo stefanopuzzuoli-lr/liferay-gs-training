@@ -23,6 +23,12 @@
 	border-bottom: 2px dashed #ACACAC;
 }
 
+.issue-without-article-section
+{
+	padding-top: 1rem;
+	padding-bottom: 0.5rem;
+}
+
 .month-div {
 	padding-bottom: 1rem;
 }
@@ -30,7 +36,7 @@
 .month-name-header {
 	background-color: #CCCCCC;
  	border: 2px solid #A6A6A6;
- 	color: black;
+ 	color: #000;
  	padding: 6px 12px;
  	text-align: center;
  	text-decoration: none;
@@ -39,4 +45,8 @@
 
 .non-bold-headers {
 	font-weight: normal;
+}
+
+.search-results-div {
+	border-bottom: 2px dashed #ACACAC;
 }

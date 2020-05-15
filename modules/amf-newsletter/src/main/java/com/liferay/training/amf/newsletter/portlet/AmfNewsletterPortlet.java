@@ -1,9 +1,11 @@
 package com.liferay.training.amf.newsletter.portlet;
 
+import com.liferay.journal.exception.NoSuchArticleException;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalFolder;
 import com.liferay.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.journal.service.JournalFolderLocalServiceUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -17,6 +19,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,7 +50,6 @@ public class AmfNewsletterPortlet extends MVCPortlet {
 	public void render(RenderRequest renderRequest, RenderResponse renderResponse)
 			throws IOException, PortletException {
 		ThemeDisplay themeDisplay = (ThemeDisplay) renderRequest.getAttribute(WebKeys.THEME_DISPLAY);
-
 		long groupId = themeDisplay.getScopeGroupId();
 		List<JournalFolder> journalFolders = JournalFolderLocalServiceUtil.getFolders(groupId);
 		Map<JournalFolder, List<JournalArticle>> foldersToArticles = new HashMap<>();
@@ -58,7 +60,7 @@ public class AmfNewsletterPortlet extends MVCPortlet {
 		// map each folder to the articles contained in it and get years of releases
 		for (JournalFolder journalFolder : journalFolders) {
 			foldersToArticles.put(journalFolder,
-					JournalArticleLocalServiceUtil.getArticles(groupId, journalFolder.getFolderId()));
+					JournalArticleLocalServiceUtil.getArticles(groupId, journalFolder.getFolderId(), 0,   QueryUtil.ALL_POS,  QueryUtil.ALL_POS));
 			Date createdate = journalFolder.getCreateDate();
 			LocalDate localCreateDate = createdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 			int year = localCreateDate.getYear();
@@ -74,7 +76,7 @@ public class AmfNewsletterPortlet extends MVCPortlet {
 		}
 				
 		List<Integer> years = new ArrayList<Integer>(yearsToFolders.keySet());
-		
+
 		// sort the list of years in descending order
 		Collections.sort(years, Collections.reverseOrder());
 
@@ -89,8 +91,16 @@ public class AmfNewsletterPortlet extends MVCPortlet {
 		// set commaSeparatedYears attribute for tabs creation
 		renderRequest.setAttribute("commaSeparatedYears", commaSeparatedYears.toString());
 
-		renderRequest.setAttribute("yearsToFolders", yearsToFolders);
-		
+		// Comparator to sort folders by createDate (DESC)
+        Comparator<JournalFolder> compareByCreateDateDesc = (JournalFolder journalFolder1, JournalFolder journalFolder2) -> 
+        journalFolder2.getCreateDate().compareTo( journalFolder1.getCreateDate() );
+        
+        // sort journalFolders of each year in DESC order
+        for (Integer key : yearsToFolders.keySet())
+        {
+        	Collections.sort(yearsToFolders.get(key), compareByCreateDateDesc);
+        }
+
 		// set all custom fields attributes of folders and articles (such as Parent
 		// Issue, Order, etc.)
 		for (JournalFolder journalFolder : foldersToArticles.keySet()) {
@@ -105,7 +115,17 @@ public class AmfNewsletterPortlet extends MVCPortlet {
 				orderInIssue--;
 				authors.add((String) article.getExpandoBridge().getAttribute("Author"));
 			}
-			journalFolder.getExpandoBridge().setAttribute("Byline", String.join(", ", authors).substring(2));
+			if  (authors.size() == 1) {
+				// get individual author from set (string includes brackets) 
+				String author = authors.toString();
+				// remove brackets from author string
+				journalFolder.getExpandoBridge().setAttribute("Byline", author.substring(1, author.length() - 1));
+			}
+			else if (!authors.isEmpty())
+			{
+				// get authors and remove trailing ', ' (comma and space)
+				journalFolder.getExpandoBridge().setAttribute("Byline", String.join(", ", authors).substring(2));
+			}
 		}
 		
 		if (_log.isDebugEnabled()) {
