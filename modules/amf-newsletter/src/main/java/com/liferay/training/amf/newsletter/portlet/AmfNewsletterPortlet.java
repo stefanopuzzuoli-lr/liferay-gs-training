@@ -1,10 +1,9 @@
 package com.liferay.training.amf.newsletter.portlet;
 
-import com.liferay.journal.exception.NoSuchArticleException;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalFolder;
-import com.liferay.journal.service.JournalArticleLocalServiceUtil;
-import com.liferay.journal.service.JournalFolderLocalServiceUtil;
+import com.liferay.journal.service.JournalArticleLocalService;
+import com.liferay.journal.service.JournalFolderLocalService;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
@@ -13,6 +12,7 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.training.amf.newsletter.constants.AmfNewsletterPortletKeys;
+import com.liferay.training.amf.newsletter.helpers.NewsletterHelper;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -33,6 +33,7 @@ import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author stefa
@@ -51,87 +52,58 @@ public class AmfNewsletterPortlet extends MVCPortlet {
 			throws IOException, PortletException {
 		ThemeDisplay themeDisplay = (ThemeDisplay) renderRequest.getAttribute(WebKeys.THEME_DISPLAY);
 		long groupId = themeDisplay.getScopeGroupId();
-		List<JournalFolder> journalFolders = JournalFolderLocalServiceUtil.getFolders(groupId);
-		Map<JournalFolder, List<JournalArticle>> foldersToArticles = new HashMap<>();
+		// get all journalFolders
+		List<JournalFolder> journalFolders = _journalFolderLocalService.getFolders(groupId);
 
-		// get list of all years in which issues are released
+		Map<JournalFolder, List<JournalArticle>> foldersToArticles = new HashMap<>();
 		Map<Integer, List<JournalFolder>> yearsToFolders = new HashMap<>();
 
-		// map each folder to the articles contained in it and get years of releases
+		// map years to folders and folders to articles
 		for (JournalFolder journalFolder : journalFolders) {
-			foldersToArticles.put(journalFolder,
-					JournalArticleLocalServiceUtil.getArticles(groupId, journalFolder.getFolderId(), 0,   QueryUtil.ALL_POS,  QueryUtil.ALL_POS));
+			foldersToArticles.put(journalFolder, _journalArticleLocalService.getArticles(groupId,
+					journalFolder.getFolderId(), 0, QueryUtil.ALL_POS, QueryUtil.ALL_POS));
 			Date createdate = journalFolder.getCreateDate();
 			LocalDate localCreateDate = createdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 			int year = localCreateDate.getYear();
-			if (yearsToFolders.containsKey(year))
-			{
+			if (yearsToFolders.containsKey(year)) {
 				yearsToFolders.get(year).add(journalFolder);
-			}
-			else
-			{
+			} else {
 				yearsToFolders.put(year, new ArrayList<>());
 				yearsToFolders.get(year).add(journalFolder);
 			}
 		}
-				
-		List<Integer> years = new ArrayList<Integer>(yearsToFolders.keySet());
 
-		// sort the list of years in descending order
+		if (_log.isDebugEnabled()) {
+			_log.debug("Mapping of years to folders and folders to articles complete.");
+		}
+
+		List<Integer> years = new ArrayList<Integer>(yearsToFolders.keySet());
+		// sort list of years in descending order
 		Collections.sort(years, Collections.reverseOrder());
 
-		StringBuffer commaSeparatedYears = new StringBuffer("");
-		for (Integer year : years) {
-			commaSeparatedYears.append(year);
-			commaSeparatedYears.append(",");
-		}
+		// get string of years separated by commas
+		String commaSeparatedYears = NewsletterHelper.getCommaSeparatedInts(years);
 
-		// set years attribute for iterating through each year
 		renderRequest.setAttribute("years", years);
-		// set commaSeparatedYears attribute for tabs creation
-		renderRequest.setAttribute("commaSeparatedYears", commaSeparatedYears.toString());
+		renderRequest.setAttribute("commaSeparatedYears", commaSeparatedYears);
 
 		// Comparator to sort folders by createDate (DESC)
-        Comparator<JournalFolder> compareByCreateDateDesc = (JournalFolder journalFolder1, JournalFolder journalFolder2) -> 
-        journalFolder2.getCreateDate().compareTo( journalFolder1.getCreateDate() );
-        
-        // sort journalFolders of each year in DESC order
-        for (Integer key : yearsToFolders.keySet())
-        {
-        	Collections.sort(yearsToFolders.get(key), compareByCreateDateDesc);
-        }
+		Comparator<JournalFolder> compareByCreateDateDesc = (JournalFolder journalFolder1,
+				JournalFolder journalFolder2) -> journalFolder2.getCreateDate()
+						.compareTo(journalFolder1.getCreateDate());
 
-		// set all custom fields attributes of folders and articles (such as Parent
-		// Issue, Order, etc.)
-		for (JournalFolder journalFolder : foldersToArticles.keySet()) {
-			long FolderIssueNumber = (long) journalFolder.getExpandoBridge().getAttribute("Issue number");
-			List<JournalArticle> articles = foldersToArticles.get(journalFolder);
-			Set<String> authors = new HashSet<>();
-			int numArticlesInIssue = articles.size();
-			int orderInIssue = numArticlesInIssue;
-			for (JournalArticle article : articles) {
-				article.getExpandoBridge().setAttribute("Parent Issue", FolderIssueNumber);
-				article.getExpandoBridge().setAttribute("Order", orderInIssue);
-				orderInIssue--;
-				authors.add((String) article.getExpandoBridge().getAttribute("Author"));
-			}
-			if  (authors.size() == 1) {
-				// get individual author from set (string includes brackets) 
-				String author = authors.toString();
-				// remove brackets from author string
-				journalFolder.getExpandoBridge().setAttribute("Byline", author.substring(1, author.length() - 1));
-			}
-			else if (!authors.isEmpty())
-			{
-				// get authors and remove trailing ', ' (comma and space)
-				journalFolder.getExpandoBridge().setAttribute("Byline", String.join(", ", authors).substring(2));
-			}
+		// sort journalFolders of each year in DESC order
+		for (Integer year : yearsToFolders.keySet()) {
+			Collections.sort(yearsToFolders.get(year), compareByCreateDateDesc);
 		}
-		
+
+		// set all custom fields attributes of folders and articles
+		NewsletterHelper.setFoldersAndArticlesCustomFields(foldersToArticles);
+
 		if (_log.isDebugEnabled()) {
-			_log.debug("All custom field expando attributes of folders and articles set.");
+			_log.debug("All custom field Expando attributes of folders and articles set.");
 		}
-		
+
 		// create mapping of folder to latest version of only approved articles
 		Map<JournalFolder, Set<JournalArticle>> foldersToLatestApprovedArticles = new HashMap<>();
 		for (JournalFolder journalFolder : foldersToArticles.keySet()) {
@@ -139,7 +111,8 @@ public class AmfNewsletterPortlet extends MVCPortlet {
 			List<JournalArticle> articles = foldersToArticles.get(journalFolder);
 			for (JournalArticle article : articles) {
 				try {
-					foldersToLatestApprovedArticles.get(journalFolder).add(JournalArticleLocalServiceUtil.getLatestArticle(groupId, article.getArticleId(), 0));
+					foldersToLatestApprovedArticles.get(journalFolder)
+							.add(_journalArticleLocalService.getLatestArticle(groupId, article.getArticleId(), 0));
 				} catch (PortalException e) {
 					e.printStackTrace();
 				}
@@ -147,45 +120,24 @@ public class AmfNewsletterPortlet extends MVCPortlet {
 		}
 		renderRequest.setAttribute("foldersToLatestApprovedArticles", foldersToLatestApprovedArticles);
 
-		Map<Integer, Map<Integer, List<JournalFolder>>> yearToMonthToFolders = new HashMap<>();
-		for (Integer year : years)
-		{
-			yearToMonthToFolders.put(year, new HashMap<>());
-			yearToMonthToFolders.get(year).put(0, new ArrayList<>());
-			yearToMonthToFolders.get(year).put(1, new ArrayList<>());
-			yearToMonthToFolders.get(year).put(2, new ArrayList<>());
-			yearToMonthToFolders.get(year).put(3, new ArrayList<>());
-			yearToMonthToFolders.get(year).put(4, new ArrayList<>());
-			yearToMonthToFolders.get(year).put(5, new ArrayList<>());
-			yearToMonthToFolders.get(year).put(6, new ArrayList<>());
-			yearToMonthToFolders.get(year).put(7, new ArrayList<>());
-			yearToMonthToFolders.get(year).put(8, new ArrayList<>());
-			yearToMonthToFolders.get(year).put(9, new ArrayList<>());
-			yearToMonthToFolders.get(year).put(10, new ArrayList<>());
-			yearToMonthToFolders.get(year).put(11, new ArrayList<>());
+		// get Map of Years to Months to JournalFolders (according to create Dates)
+		Map<Integer, Map<Integer, List<JournalFolder>>> yearToMonthToFolders = NewsletterHelper
+				.getYearToMonthToFolders(yearsToFolders);
+		renderRequest.setAttribute("yearToMonthToFolders", yearToMonthToFolders);
 
-			if (yearsToFolders.get(year) != null)
-			{
-				List<JournalFolder> journalFoldersOfYear = yearsToFolders.get(year);
-				for (JournalFolder journalFolderOfYear : journalFoldersOfYear)
-				{
-					int monthNum = journalFolderOfYear.getCreateDate().getMonth();
-					yearToMonthToFolders.get(year).get(monthNum).add(journalFolderOfYear);
-				}
-			}
-		}
-		
 		if (_log.isDebugEnabled()) {
 			_log.debug("Mapping of Years to Months to JournalFolders complete.");
 		}
-		
-		renderRequest.setAttribute("yearToMonthToFolders", yearToMonthToFolders);
-		
-		renderRequest.setAttribute("foldersToArticles", foldersToArticles);
-		
+
 		super.render(renderRequest, renderResponse);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(AmfNewsletterPortlet.class);
+
+	@Reference
+	protected JournalFolderLocalService _journalFolderLocalService;
+
+	@Reference
+	protected JournalArticleLocalService _journalArticleLocalService;
 
 }

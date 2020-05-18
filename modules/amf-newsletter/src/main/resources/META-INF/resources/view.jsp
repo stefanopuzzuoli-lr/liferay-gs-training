@@ -5,7 +5,7 @@
     value="/view_search.jsp" />
 </liferay-portlet:renderURL>
 
-<aui:form action="${searchURL}"  method="get" name="fm">
+<aui:form action="${searchURL}"  method="post" name="fm">
 	<liferay-portlet:renderURLParams varImpl="searchURL" />
 
     <div class="row">
@@ -19,7 +19,6 @@
     </div>
 
 </aui:form>
-
 
 <liferay-ui:tabs names="${commaSeparatedYears}" refresh="<%=false%>" >
 
@@ -36,7 +35,7 @@
 				Collections.reverse(keys);
 				pageContext.setAttribute("keys", keys); 
 			%>
-			
+
 			<c:forEach items = "${keys}" var = "monthInInt">
 				<!-- Convert month integer to month literal name -->
 				<%	
@@ -70,11 +69,10 @@
 				   	   						
 						</portlet:renderURL>
 
-							
 						<c:set value="${formattedCreateDate}"  var="formattedCreateDate"/>
 						<div class="issue-section">
 							<a href="<%= viewIssueURL %>">  
-								<h5 class="folder-meta-header non-bold-headers"> Issue: #${issueNumber}, ${formattedCreateDate} </h5>
+								<h5 class="folder-meta-header non-bold-headers"> <liferay-ui:message key="issue-number-label" /> #${issueNumber}, ${formattedCreateDate} </h5>
 								<h3 class="folder-name-header headers"> ${journalFolder.getName()}</h3>
 								<ul class="articles-list">
 								<c:forEach items = "${foldersToLatestApprovedArticles.get(journalFolder)}" var = "journalArticle">
@@ -91,7 +89,6 @@
 			</c:choose>
 			</div>
 			</c:forEach>
-			
 		</liferay-ui:section>
 	</c:forEach>
 

@@ -1,6 +1,8 @@
 .amf-newsletter {
 }
 
+/*--- Articles List --- */
+
 .articles-list {
 	list-style-type: none;
 	margin-left: -1.2rem;
@@ -14,9 +16,17 @@
 	padding-left: 1rem;
 }
 
+/*--- Headers --- */
+
 .headers{
 	color: #1F70FF;
 }
+
+.non-bold-headers {
+	font-weight: normal;
+}
+
+/*--- Issues --- */
 
 .issue-section {
 	margin-bottom: 1rem;
@@ -25,9 +35,11 @@
 
 .issue-without-article-section
 {
-	padding-top: 1rem;
 	padding-bottom: 0.5rem;
+	padding-top: 1rem;
 }
+
+/*--- Month Sections --- */
 
 .month-div {
 	padding-bottom: 1rem;
@@ -37,16 +49,15 @@
 	background-color: #CCCCCC;
  	border: 2px solid #A6A6A6;
  	color: #000;
+ 	font-size: 16px;
  	padding: 6px 12px;
  	text-align: center;
  	text-decoration: none;
- 	font-size: 16px;
 }
 
-.non-bold-headers {
-	font-weight: normal;
-}
+/*--- Search results --- */
 
 .search-results-div {
 	border-bottom: 2px dashed #ACACAC;
+	margin-bottom: 0.5rem;
 }

@@ -6,6 +6,6 @@ dependencies {
 	compileOnly group: "jstl", name: "jstl"
 	compileOnly group: "org.osgi", name: "org.osgi.service.component.annotations"
 	compileOnly group: "com.liferay", name: "com.liferay.journal.api"
-	
 	compileOnly group: "com.liferay", name: "com.liferay.registry.api"
+    compileOnly group: "com.liferay", name: "com.liferay.portal.spring.extender.api"
 }

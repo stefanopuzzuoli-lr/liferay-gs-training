@@ -11,6 +11,7 @@ taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
 <%@ page import ="com.liferay.journal.model.JournalFolder"%>
 <%@ page import ="com.liferay.journal.service.JournalArticleLocalServiceUtil"%>
 <%@ page import ="com.liferay.journal.service.JournalFolderLocalServiceUtil"%>
+
 <%@ page import ="java.text.SimpleDateFormat"%>
 <%@ page import ="java.time.Month"%>
 <%@ page import ="java.util.ArrayList"%>
@@ -20,8 +21,6 @@ taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
 <%@ page import ="java.util.HashMap"%>
 <%@ page import ="java.util.Map"%>
 <%@ page import ="java.util.List"%>
-
-<%@ page import ="com.liferay.portal.kernel.util.ParamUtil"%>
 
 <%@ page import="com.liferay.portal.kernel.dao.search.SearchContainer" %>
 <%@ page import="com.liferay.portal.kernel.exception.PortalException" %>
@@ -38,12 +37,11 @@ taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
 <%@ page import="com.liferay.portal.kernel.search.Field" %>
 <%@ page import="com.liferay.portal.kernel.util.GetterUtil" %>
 <%@ page import="com.liferay.portal.kernel.util.ListUtil" %>
-<%@ page import="com.liferay.portal.kernel.util.Validator" %>
+<%@ page import ="com.liferay.portal.kernel.util.ParamUtil"%>
 <%@ page import="com.liferay.portal.kernel.util.PortalUtil" %>
-
+<%@ page import="com.liferay.portal.kernel.util.Validator" %>
 
 <%@ page import="com.liferay.training.amf.newsletter.helpers.NewsletterHelper" %>
-
 
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Map" %>

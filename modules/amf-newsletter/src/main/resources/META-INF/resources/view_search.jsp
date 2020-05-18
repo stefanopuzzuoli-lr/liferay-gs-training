@@ -16,8 +16,7 @@
     />
 </portlet:renderURL>
 
-
-<aui:form action="${searchURL}"  method="get" name="fm">
+<aui:form action="${searchURL}"  method="post" name="fm">
 	<liferay-portlet:renderURLParams varImpl="searchURL" />
 
 <liferay-ui:header
@@ -67,19 +66,17 @@
                 journalFolders.add(entry);
         }
         
-
         Comparator<JournalFolder> compareByCreateDateDesc = (JournalFolder journalFolder1, JournalFolder journalFolder2) -> 
         journalFolder2.getCreateDate().compareTo( journalFolder1.getCreateDate() );
-        Collections.sort(journalFolders, compareByCreateDateDesc);
-                
+        Collections.sort(journalFolders, compareByCreateDateDesc);        
 %>
 
 <h3> <liferay-ui:message key="search-results-header" /> <span class="headers search-keywords"> <%= keywords %> </span></h3>
 
 <liferay-ui:search-container delta="5" 
-    emptyResultsMessage="no-journalFolders-were-found" 
-    total="<%= journalFolders.size() %>"
-    iteratorURL="<%= searchURL %>">
+    emptyResultsMessage="no-journalFolders-were-found"
+    iteratorURL="<%= searchURL %>"
+    total="<%= journalFolders.size() %>">
         <liferay-ui:search-container-results
                 results="<%= ListUtil.subList(journalFolders, searchContainer.getStart(), searchContainer.getEnd())%>"/>
                 
@@ -101,7 +98,7 @@
 				
 		<div class="issue-without-article-section">
 			<a href="<%= viewIssueURL %>">  
-			<h5 class="folder-meta-header non-bold-headers"> Issue: #${issueNumber}, ${formattedCreateDate} </h5>
+			<h5 class="folder-meta-header non-bold-headers"> <liferay-ui:message key="issue-number-label" /> #${issueNumber}, ${formattedCreateDate} </h5>
 			<h3 class="folder-name-header headers"> ${journalFolder.getName()}</h3>
 			</a>
 		</div>
@@ -110,7 +107,6 @@
 	</div>
         <liferay-ui:search-iterator />
 </liferay-ui:search-container>
-
 
 <%!
         private static Log _log = LogFactoryUtil.getLog("com_liferay_training_amf_newsletter_AmfNewsletterPortlet.view_search_jsp");

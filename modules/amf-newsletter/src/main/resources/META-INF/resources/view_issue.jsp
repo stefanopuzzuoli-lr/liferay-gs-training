@@ -13,7 +13,7 @@
 <c:set value="${journalFolder.getExpandoBridge().getAttribute('Byline')}"  var="byline"/>
 
 <div class="issue">
-	<h5 class="folder-meta-header headers non-bold-headers"> Issue: #${issueNumber}, ${formattedCreateDate} </h5>
+	<h5 class="folder-meta-header headers non-bold-headers"> <liferay-ui:message key="issue-number-label" /> #${issueNumber}, ${formattedCreateDate} </h5>
 	<h3 class="folder-name-header headers"> ${journalFolder.getName()}</h3>
 	<h5 class="folder-meta-header headers non-bold-headers"> ${byline}</h5>
 	<p class="issue-description">${journalFolder.getDescription()} </p>
